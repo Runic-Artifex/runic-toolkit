@@ -99,12 +99,12 @@ internal static class Program
         }
         finally
         {
-            if (bridge is not null) try { await bridge.DisposeAsync(); } catch (Exception exception) { (cleanupErrors ??= []).Add(exception); }
-            Capture(ref cleanupErrors, () => desktopBinding?.Dispose());
-            if (window is not null) { Capture(ref cleanupErrors, window.Dispose); Capture(ref cleanupErrors, WebUiApplication.Clean); }
             if (browserStarted && browser is not null) try { if (!browser.HasExited) { browser.Kill(true); await browser.WaitForExitAsync(); } } catch (Exception exception) { (cleanupErrors ??= []).Add(exception); }
             if (browserDiagnostics is not null) try { _ = await browserDiagnostics; } catch (Exception exception) { (cleanupErrors ??= []).Add(exception); }
             Capture(ref cleanupErrors, () => browser?.Dispose());
+            if (bridge is not null) try { await bridge.DisposeAsync(); } catch (Exception exception) { (cleanupErrors ??= []).Add(exception); }
+            Capture(ref cleanupErrors, () => desktopBinding?.Dispose());
+            Capture(ref cleanupErrors, () => window?.Dispose());
             if (Directory.Exists(browserProfile))
             {
                 try
