@@ -108,7 +108,19 @@ internal static class Program
             if (browserStarted && browser is not null) try { if (!browser.HasExited) { browser.Kill(true); await browser.WaitForExitAsync(); } } catch (Exception exception) { (cleanupErrors ??= []).Add(exception); }
             if (browserDiagnostics is not null) try { _ = await browserDiagnostics; } catch (Exception exception) { (cleanupErrors ??= []).Add(exception); }
             Capture(ref cleanupErrors, () => browser?.Dispose());
-            if (Directory.Exists(browserProfile)) Capture(ref cleanupErrors, () => Directory.Delete(browserProfile, true));
+            if (Directory.Exists(browserProfile))
+            {
+                try
+                {
+                    await DeleteBrowserProfileAsync(browserProfile).ConfigureAwait(false);
+                }
+                catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+                {
+                    // Chrome crash helpers can briefly retain profile files on Windows.
+                    // The hosted runner owns the temporary directory and will remove it.
+                    Console.Error.WriteLine($"WARN: temporary browser profile cleanup was deferred: {exception.Message}");
+                }
+            }
         }
 
         if (cleanupErrors is null) return exitCode;
@@ -128,6 +140,23 @@ internal static class Program
     private static void Capture(ref List<Exception>? errors, Action cleanup)
     {
         try { cleanup(); } catch (Exception exception) { (errors ??= []).Add(exception); }
+    }
+
+    private static async Task DeleteBrowserProfileAsync(string path)
+    {
+        for (int attempt = 0; ; attempt++)
+        {
+            try
+            {
+                Directory.Delete(path, true);
+                return;
+            }
+            catch (Exception exception) when (
+                attempt < 9 && exception is IOException or UnauthorizedAccessException)
+            {
+                await Task.Delay(200).ConfigureAwait(false);
+            }
+        }
     }
 }
 
