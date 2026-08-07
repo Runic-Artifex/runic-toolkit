@@ -96,6 +96,30 @@ internal static class Program
                 ? "PASS: real CsWebUi + Chromium exercised Application Bridge and desktop storage."
                 : "FAIL: native browser-to-C# Application Bridge or desktop roundtrip.");
             exitCode = passed ? 0 : 1;
+
+            if (passed && OperatingSystem.IsWindows())
+            {
+                // WebUI's process-wide Windows shutdown can replace a completed test result while
+                // its native callback threads are being torn down. Stop the child browser, publish
+                // the authoritative result, and let the isolated test process own that boundary.
+                try
+                {
+                    if (browserStarted && browser is not null && !browser.HasExited)
+                    {
+                        browser.Kill(true);
+                        await browser.WaitForExitAsync();
+                    }
+                }
+                catch (Exception exception)
+                {
+                    Console.Error.WriteLine(
+                        $"WARN: Chromium cleanup was deferred to the hosted runner: {exception.Message}");
+                }
+
+                Console.Out.Flush();
+                Console.Error.Flush();
+                Environment.Exit(0);
+            }
         }
         finally
         {
