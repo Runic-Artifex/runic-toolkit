@@ -32,7 +32,6 @@ internal static class Program
         WebUiBinding? desktopBinding = null;
         Process? browser = null;
         Task<string>? browserDiagnostics = null;
-        bool serverStarted = false;
         bool browserStarted = false;
         List<Exception>? cleanupErrors = null;
         int exitCode = 1;
@@ -49,7 +48,6 @@ internal static class Program
                 if (webUiEvent.ArgumentCount == 1) desktopMessages.Writer.TryWrite(webUiEvent.GetString());
             });
             string url = window.StartServer("index.html");
-            serverStarted = true;
 
             Directory.CreateDirectory(browserProfile);
             browser = new Process { StartInfo = { FileName = chromium, RedirectStandardError = true, UseShellExecute = false } };
@@ -101,7 +99,6 @@ internal static class Program
         }
         finally
         {
-            if (serverStarted) Capture(ref cleanupErrors, WebUiApplication.Exit);
             if (bridge is not null) try { await bridge.DisposeAsync(); } catch (Exception exception) { (cleanupErrors ??= []).Add(exception); }
             Capture(ref cleanupErrors, () => desktopBinding?.Dispose());
             if (window is not null) { Capture(ref cleanupErrors, window.Dispose); Capture(ref cleanupErrors, WebUiApplication.Clean); }
