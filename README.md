@@ -9,13 +9,13 @@ Build a native desktop application with a modern web frontend without giving up 
 Prerequisites: the .NET 10 SDK, Node.js 24.18 or later, npm, and a supported desktop platform for [CS-WebUI](https://github.com/Runic-Artifex/cs-webui).
 
 ```bash
-dotnet new install RunicToolkit.Templates::1.0.0-beta.1
+dotnet new install RunicToolkit.Templates::<VERSION>
 dotnet new runic-toolkit-svelte --name MyApp
 cd MyApp
 dotnet run
 ```
 
-Choose `runic-toolkit-react`, `runic-toolkit-vue`, or `runic-toolkit-angular` to start with another frontend. The templates include a working counter, a generated Application Bridge contract, and the matching frontend runtime. Run `dotnet run -- --smoke-test` to exercise the managed bridge without opening a window.
+Replace `<VERSION>` with the current preview shown on [NuGet](https://www.nuget.org/packages/RunicToolkit.Templates). Choose `runic-toolkit-react`, `runic-toolkit-vue`, or `runic-toolkit-angular` to start with another frontend. The templates include a working counter, a generated Application Bridge contract, and the matching frontend runtime. Run `dotnet run -- --smoke-test` to exercise the managed bridge without opening a window.
 
 ## Choose your package
 
